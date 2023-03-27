@@ -3,11 +3,37 @@ import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from 'react
 import { useNavigation } from '@react-navigation/native';
 import imagePath from '../assets/souhoulabg.png'; // Update this path to match the location of your background image
 import Icon from 'react-native-vector-icons/FontAwesome';
+import auth from '@react-native-firebase/auth';
+import {LoginManager, AccessToken} from 'react-native-fbsdk-next';
 const AuthScreen = () => {
   const navigation = useNavigation();
 
-  const handleFacebookLogin = () => {
+  const handleFacebookLogin = async () => {
     // Add your Facebook login logic here
+    try {
+      const result = await LoginManager.logInWithPermissions(['public_profile', 'email']);
+  
+      if (result.isCancelled) {
+        console.log('User cancelled the login process');
+        return;
+      }
+  
+      const data = await AccessToken.getCurrentAccessToken();
+  
+      if (!data) {
+        console.log('Something went wrong obtaining access token');
+        return;
+      }
+  
+      const facebookCredential = auth.FacebookAuthProvider.credential(data.accessToken);
+  
+      await auth().signInWithCredential(facebookCredential);
+  
+      // Navigate to the Register screen after successful authentication
+      navigation.navigate('Register');
+    } catch (error) {
+      console.log('Facebook login error:', error);
+    }
   };
 
   const handleAppleLogin = () => {
